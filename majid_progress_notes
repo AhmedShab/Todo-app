@@ -1,0 +1,3 @@
+I have started today by creating the database where I will store my data.
+Tomorrow, the plan is to create the routes for saving a task, fetchin specific task,fetching all tasks, clearing all tasks and setting
+deadline for a specific task.
