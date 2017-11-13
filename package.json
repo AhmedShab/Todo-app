@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/AhmedShab/Todo-app#readme",
   "dependencies": {
+    "dotenv": "^4.0.0",
     "knex": "^0.14.0"
   }
 }
