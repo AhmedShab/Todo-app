@@ -18,6 +18,8 @@
   "homepage": "https://github.com/AhmedShab/Todo-app#readme",
   "dependencies": {
     "dotenv": "^4.0.0",
-    "knex": "^0.14.0"
+    "knex": "^0.14.0",
+    "mssql": "^4.1.0",
+    "prompt": "^1.0.0"
   }
 }

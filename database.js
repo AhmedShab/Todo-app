@@ -1,3 +1,4 @@
+require('mssql');
 require('dotenv').config();
 var knex = require('knex')({
   client: 'mssql',
