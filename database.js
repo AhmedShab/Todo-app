@@ -5,16 +5,17 @@ var knex = require('knex')({
   connection: {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: Todoapp
+    password: process.env.DB_PASS
+
+    // database: dbo
   }
 });
 
-knex.schema.createTable(Todos, function(table) {
-  table.string(Title).primary();
-  table.string(Description);
-  table.date(Due_date);
-  table.boolean(Task_Done).defaultTo(false);
+knex.schema.createTableIfNotExists('Todos', function(table) {
+  table.string('Title').primary();
+  table.string('Description');
+  table.date('Due_date');
+  table.boolean('Task_Done').defaultTo(false);
 }).then();
 
 module.exports = knex;
