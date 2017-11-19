@@ -19,12 +19,12 @@ app.post('/addTask', function(req, res) {
 });
 app.get('/getTask/:name', function(req, res) {
   var taskName = req.params.name;
-  knex.select('title').from('Todos').where({
+  knex.select('*').from('Todos').where({
     Title: taskName
   }).then(function(row) {
     if (row.length === 1) {
-      var myrow = JSON.stringify(row[0].title);
-      res.write(JSON.parse(myrow));
+      var myrow = JSON.stringify(row, null, "\t");
+      res.write(myrow);
       res.send();
     } else {
       res.send('The task does not exist');
