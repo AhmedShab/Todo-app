@@ -55,7 +55,6 @@ app.put('/updateTask/:name', function(req, res) {
       res.send('Columns does not exist');
     }
   }).then(function(tableColumns) {
-    var index = 0;
     var flag = true;
     Object.keys(entries).forEach(function(key) {
       // console.log(tableColumns);
