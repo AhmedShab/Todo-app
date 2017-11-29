@@ -18,12 +18,12 @@ app.post('/addTask', function(req, res) {
           Description: description,
           Due_date: dueDate
         }).then(function(body) {
-          res.send(JSON.stringify(body, null, 2));
+          res.json(body);
         }).catch(function(error) {
-          res.send(JSON.stringify(error));
+          res.json(error);
         });
       } else {
-        res.send(JSON.stringify(req.body, null, 2) +
+        res.json(req.body +
           ' does already exist');
       }
     })
@@ -40,6 +40,60 @@ app.put('/updateTask/:name', function(req, res) {
       console.log(row);
       if (row.length === 0) {
         res.send('name does not exist');
+      } else {
+        res.send('name exist');
+      }
+    });
+  knex('Todos').columnInfo().then(function(columns) {
+    if (columns) {
+      Object.keys(columns).forEach(function(key) {
+        tableColumns[count] = key;
+        count++;
+      });
+      return tableColumns;
+    } else {
+      res.send('Columns does not exist');
+    }
+  }).then(function(tableColumns) {
+    var index = 0;
+    var flag = true;
+    Object.keys(entries).forEach(function(key) {
+      // console.log(tableColumns);
+      if (!_.contains(tableColumns, key)) {
+        flag = false;
+      }
+
+    });
+    console.log('loop after if');
+    if (flag) {
+      res.send(key +
+        ' parameter does not exist, please enter correct parameters'
+      );
+    }
+  });
+
+  knex('Todos').where('Title', name).update(entries).on('query-error',
+    function(error) {
+      app.log(error);
+    })
+});
+
+app.put('/updateAllTasks', function(req, res) {
+  var entries = req.query;
+  console.log(req.query);
+  if (req.query.Title) {
+    res.send(
+      'YOu can not update the title for all entries, this violates tables primary key'
+    );
+  }
+
+  var tableColumns = [];
+  var count = 0;
+  knex('Todos').select('*').then(
+    function(row) {
+      // console.log(row);
+      if (row.length === 0) {
+        res.send('no data exist');
         return 0;
       } else {
         console.log('name exist');
@@ -68,8 +122,8 @@ app.put('/updateTask/:name', function(req, res) {
     })
   });
 
-  knex('Todos').where('Title', name).update(entries).on('query-error',
-    function(error, obj) {
+  knex('Todos').update(entries).on('query-error',
+    function(error) {
       app.log(error);
     }).then(function() {
     res.send();
@@ -77,32 +131,29 @@ app.put('/updateTask/:name', function(req, res) {
     res.send(error);
   })
 });
+
+
+
 app.get('/getTask/:name', function(req, res) {
   var taskName = req.params.name;
   knex.select('*').from('Todos').where({
     Title: taskName
   }).then(function(row) {
     if (row.length === 1) {
-      var myrow = JSON.stringify(row, null, "\t");
-      res.write(myrow);
-      res.send();
+      res.json(row);
     } else {
       res.send('The task does not exist');
     }
-    res.end();
   });
 });
 
 app.get('/getAllTasks', function(req, res) {
   knex.select('*').from('Todos').then(function(rows) {
     if (rows.length !== 0) {
-      var myrows = JSON.stringify(rows, null, "\t");
-      res.write(myrows);
-      res.send();
+      res.json(rows);
     } else {
       res.send('No entry exist');
     }
-    res.end();
   });
 });
 
@@ -111,10 +162,8 @@ app.delete('/deleteAllTasks', function(req, res) {
     res.send(JSON.stringify('number of rows delete: ' + rows,
       null,
       "\t"));
-    res.end();
   }).then(function(error) {
-    res.send(JSON.stringify(error, null, "\t"));
-
+    res.json(error);
   });
 });
 
