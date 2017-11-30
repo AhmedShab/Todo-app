@@ -32,48 +32,47 @@ app.post('/addTask', function(req, res) {
 app.put('/updateTask/:name', function(req, res) {
   var entries = req.query;
   var name = req.params.name;
-  // console.log(name);
   var tableColumns = [];
   var count = 0;
+
   knex('Todos').where('Title', name).select('Title').then(
     function(row) {
-      console.log(row);
       if (row.length === 0) {
         res.send('name does not exist');
-      } else {
-        res.send('name exist');
       }
     });
-  knex('Todos').columnInfo().then(function(columns) {
-    if (columns) {
-      Object.keys(columns).forEach(function(key) {
-        tableColumns[count] = key;
-        count++;
-      });
-      return tableColumns;
-    } else {
-      res.send('Columns does not exist');
-    }
-  }).then(function(tableColumns) {
-    var flag = true;
-    Object.keys(entries).forEach(function(key) {
-      // console.log(tableColumns);
-      if (!_.contains(tableColumns, key)) {
-        flag = false;
-      }
 
+  knex('Todos').columnInfo().then(function(columns) {
+      // console.log(columns);
+      if (columns) {
+        Object.keys(columns).forEach(function(key) {
+          tableColumns[count] = key;
+          count++;
+        });
+        return tableColumns;
+      } else {
+        res.send('Columns does not exist');
+      }
+    })
+    .then(function(tableColumns) {
+      Object.keys(entries).forEach(function(key) {
+        if (!_.contains(tableColumns, key)) {
+          throw new Error('query item does not exist');
+        }
+      });
+    })
+    .catch(function(e) {
+      console.log(e);
+      res.status(500).end();
     });
-    console.log('loop after if');
-    if (flag) {
-      res.send(key +
-        ' parameter does not exist, please enter correct parameters'
-      );
-    }
-  });
 
   knex('Todos').where('Title', name).update(entries).on('query-error',
-    function(error) {
-      app.log(error);
+      function(error) {
+        app.log(error);
+      })
+    .then(function(body) {
+      console.log(body);
+      res.sendStatus(200);
     })
 });
 
@@ -85,7 +84,6 @@ app.put('/updateAllTasks', function(req, res) {
       'YOu can not update the title for all entries, this violates tables primary key'
     );
   }
-
   var tableColumns = [];
   var count = 0;
   knex('Todos').select('*').then(
@@ -99,28 +97,28 @@ app.put('/updateAllTasks', function(req, res) {
       }
     });
   knex('Todos').columnInfo().then(function(columns) {
-    if (columns) {
-      Object.keys(columns).forEach(function(key) {
-        tableColumns[count] = key;
-        count++;
-      });
-      return tableColumns;
-    } else {
-      console.log('Columns does not exist');
-    }
-  }).then(function(tableColumns) {
-    var index = 0;
-    Object.keys(entries).forEach(function(key) {
-      // console.log(tableColumns);
-      if (!_.contains(tableColumns, key)) {
-        console.log(key +
-          ' parameter does not exist, please enter correct parameters'
-        );
-        return 0;
+      if (columns) {
+        Object.keys(columns).forEach(function(key) {
+          tableColumns[count] = key;
+          count++;
+        });
+        return tableColumns;
+      } else {
+        console.log('Columns does not exist');
       }
     })
-  });
-
+    .then(function(tableColumns) {
+      var index = 0;
+      Object.keys(entries).forEach(function(key) {
+        // console.log(tableColumns);
+        if (!_.contains(tableColumns, key)) {
+          throw new Error('query item does not exist');
+        }
+      })
+    })
+    .catch(function(e) {
+      console.log(e);
+    });
   knex('Todos').update(entries).on('query-error',
     function(error) {
       app.log(error);
