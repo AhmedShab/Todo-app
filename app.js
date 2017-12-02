@@ -3,145 +3,59 @@ var express = require('express');
 var app = express();
 var _ = require('underscore');
 var bodyParser = require('body-parser');
-
 app.use(bodyParser.json());
+
+
 app.post('/addTask', function(req, res) {
   var body = req.body;
-  var title = body.title;
-  var description = body.description;
-  var dueDate = body.dueDate;
-  knex.select('title').from('Todos').where('title', title).then(
-    function(row) {
-      if (row.length === 0) {
-        knex('Todos').insert({
-          Title: title,
-          Description: description,
-          Due_date: dueDate
-        }).then(function(body) {
-          res.json(body);
-        }).catch(function(error) {
-          res.json(error);
-        });
-      } else {
-        res.json(req.body +
-          ' does already exist');
-      }
-    })
+  knex('Todos').insert(body).on('query-error',
+    function(error) {
+      console.log(error);
+    }).then(function() {
+    res.json('Insert is done');
+  }).catch(function(error) {
+    console.log(error);
+    res.send(error);
+  })
 });
 
 app.put('/updateTask/:name', function(req, res) {
   var entries = req.query;
   var name = req.params.name;
-  var tableColumns = [];
-  var count = 0;
-
-  knex('Todos').where('Title', name).select('Title').then(
-    function(row) {
-      if (row.length === 0) {
-        res.send('name does not exist');
-      }
-    });
-
-  knex('Todos').columnInfo().then(function(columns) {
-      // console.log(columns);
-      if (columns) {
-        Object.keys(columns).forEach(function(key) {
-          tableColumns[count] = key;
-          count++;
-        });
-        return tableColumns;
-      } else {
-        res.send('Columns does not exist');
-      }
-    })
-    .then(function(tableColumns) {
-      Object.keys(entries).forEach(function(key) {
-        if (!_.contains(tableColumns, key)) {
-          throw new Error('query item does not exist');
-        }
-      });
-    })
-    .catch(function(e) {
-      console.log(e);
-      res.status(500).end();
-    });
-
   knex('Todos').where('Title', name).update(entries).on('query-error',
-      function(error) {
-        app.log(error);
-      })
-    .then(function(body) {
-      console.log(body);
-      res.sendStatus(200);
-    })
-});
-
-app.put('/updateAllTasks', function(req, res) {
-  var entries = req.query;
-  console.log(req.query);
-  if (req.query.Title) {
-    res.send(
-      'YOu can not update the title for all entries, this violates tables primary key'
-    );
-  }
-  var tableColumns = [];
-  var count = 0;
-  knex('Todos').select('*').then(
-    function(row) {
-      // console.log(row);
-      if (row.length === 0) {
-        res.send('no data exist');
-        return 0;
-      } else {
-        console.log('name exist');
-      }
-    });
-  knex('Todos').columnInfo().then(function(columns) {
-      if (columns) {
-        Object.keys(columns).forEach(function(key) {
-          tableColumns[count] = key;
-          count++;
-        });
-        return tableColumns;
-      } else {
-        console.log('Columns does not exist');
-      }
-    })
-    .then(function(tableColumns) {
-      var index = 0;
-      Object.keys(entries).forEach(function(key) {
-        // console.log(tableColumns);
-        if (!_.contains(tableColumns, key)) {
-          throw new Error('query item does not exist');
-        }
-      })
-    })
-    .catch(function(e) {
-      console.log(e);
-    });
-  knex('Todos').update(entries).on('query-error',
     function(error) {
-      app.log(error);
+      console.log(error);
     }).then(function() {
-    res.send();
+    res.send('Update is done');
   }).catch(function(error) {
     res.send(error);
   })
 });
 
-
+app.put('/updateAllTasks', function(req, res) {
+  var entries = req.query;
+  knex('Todos').update(entries).on('query-error',
+    function(error) {
+      console.log(error);
+    }).then(function() {
+    res.send('Update is done');
+  }).catch(function(error) {
+    res.send(error);
+  })
+});
 
 app.get('/getTask/:name', function(req, res) {
   var taskName = req.params.name;
   knex.select('*').from('Todos').where({
     Title: taskName
-  }).then(function(row) {
-    if (row.length === 1) {
-      res.json(row);
-    } else {
-      res.send('The task does not exist');
-    }
-  });
+  }).on('query-error',
+    function(error, row) {
+      console.log(error);
+    }).then(function(row) {
+    res.json(row);
+  }).catch(function(error) {
+    res.send(error);
+  })
 });
 
 app.get('/getAllTasks', function(req, res) {
@@ -156,12 +70,10 @@ app.get('/getAllTasks', function(req, res) {
 
 app.delete('/deleteAllTasks', function(req, res) {
   knex('Todos').del().then(function(rows) {
-    res.send(JSON.stringify('number of rows delete: ' + rows,
-      null,
-      "\t"));
-  }).then(function(error) {
-    res.json(error);
-  });
+    res.send('number of rows delete: ' + row);
+  }).catch(function(error) {
+    res.status(500).send();
+  })
 });
 
 app.listen(3000, function() {
